@@ -1,0 +1,207 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+data = pd.read_csv('trip.csv')
+
+data.head()
+
+data.info()
+
+data.describe()
+
+# Q. 중복 데이터를 확인합니다.
+
+data[data.duplicated()]
+
+# Q. 중복 데이터를 확인합니다.
+# 위에서 확인한 중복 데이터의 승객명을 [[PASSENGER_NAME]] 대신 넣어주세요.
+data[data['passenger_name'] == 'Sarah Gross']
+
+# Q. 중복 데이터를 제거합니다.
+data = data.drop_duplicates()
+
+data
+
+data.isna().sum()
+
+data.isna().mean()
+
+data = data.dropna()
+
+data.isna().mean()
+
+data
+
+# passenger_count 컬럼의 값을 기준으로 정렬합니다.
+data['passenger_count'].sort_values()
+
+# passenger_count 값의 scatter plot을 그립니다.
+sns.scatterplot(x = data.index, y = data['passenger_count'])
+
+# passenger_count 컬럼의 이상치를 제거합니다.
+# (passenger_count가 6을 초과하는 경우)
+
+data = data[data['passenger_count'] <= 6]
+data
+
+# passenger_count 컬럼의 이상치를 확인합니다.
+# (passenger_count가 0인 경우)
+
+data[data['passenger_count'] == 0]
+
+# passenger_count 컬럼의 이상치를 제거합니다.
+
+data = data[data['passenger_count'] != 0]
+data
+
+# passenger_count의 scatter plot을 다시 그려봅니다.
+
+sns.scatterplot(x = data.index, y = data['passenger_count'])
+
+# Q. trip_distance의 이상치를 확인합니다.
+
+sns.scatterplot(x = data.index, y = data['trip_distance'])
+
+sns.displot(data['trip_distance'])
+
+sns.boxplot(data['trip_distance'])
+
+# Q. trip_distance의 이상치를 제거합니다.
+
+data = data[data['trip_distance'] != 0]
+
+# Q. trip_distance의 히스토그램을 그립니다.
+
+sns.histplot(data['trip_distance'])
+
+data.describe()
+
+# Q. fare_amount의 이상치 데이터 개수를 확인합니다.
+# (fare_amount가 0 이하인 경우)
+
+len(data[data['fare_amount'] < 0])
+
+data = data[data['fare_amount'] > 0]
+
+data.sort_values('fare_amount')
+
+# Q. fare_amount의 이상치를 제거합니다.
+data = data[data['fare_amount'] < 300]
+data
+
+# Q. fare_amount의 scatter plot을 그립니다.
+
+sns.scatterplot(x = data.index, y = data['fare_amount'])
+
+# fare_amount가 150을 초과한다면 150으로 변환합니다.
+
+def fare_func(x):
+    if x > 150:
+        return 150
+    else:
+        return x
+
+data['fare_amount'].apply(fare_func)
+
+# 람다 방식
+data['fare_amount'] = data['fare_amount'].apply(lambda x: 150 if x > 150 else x)
+
+data.sort_values('fare_amount')
+
+# Q. tip_amount의 scatter plot을 그립니다.
+
+sns.scatterplot(x = data.index, y = data['tip_amount'])
+
+# Q. tip_amount의 이상치를 확인합니다.
+
+data.sort_values('tip_amount')
+
+data = data[data['tip_amount'] < 40]
+
+data.describe()
+
+# Q. tolls_amount의 scatter plot을 그립니다.
+
+sns.scatterplot(x = data.index, y = data['tolls_amount'])
+
+# 범주형 데이터 전처리
+# 결제 방법: Debit Card와 Credit Card를 Card로 통합합니다.
+
+data.head(30)
+
+# payment_method 컬럼에 어떤 값들이 있는지 살펴봅시다.
+
+data['payment_method'].unique()
+
+data['payment_method'].nunique()
+
+data['payment_method'].value_counts()
+
+# Q. 'Debit Card'와 'Credit Card' 항목을 'Card'로 변환합니다. 
+# (힌트: replace() 메서드를 사용합니다.)
+
+data['payment_method'] = data['payment_method'].replace({'Debit Card' : 'Card', 'Credit Card' : 'Card'})
+
+data['payment_method'].value_counts()
+
+# 승객명: 성과 이름을 분리하여 성 부분만 저장해봅니다.
+example = 'Susan Robinson'
+
+example.split()
+
+# Q. passenger_name을 성과 이름으로 분리하여 성 부분만 passenger_first_name 컬럼으로 저장합니다.
+
+data['passenger_first_name'] = data['passenger_name'].str.split(expand = True)[0]
+
+data
+
+# 택시 탑승, 하차 시간을 활용해봅시다.
+data.info()
+
+# Q. tpep_pickup_datetime 컬럼의 object 자료형을 datetime으로 변환합니다.
+data['tpep_pickup_datetime'] = pd.to_datetime(data['tpep_pickup_datetime'])
+
+# Q. tpep_dropoff_datetime 컬럼의 object 자료형을 datetime으로 변환합니다.
+
+data['tpep_dropoff_datetime'] = pd.to_datetime(data['tpep_dropoff_datetime'])
+
+data.info()
+
+# Q. 하차 시각과 승차 시각의 차이를 travel_time 컬럼으로 저장합니다.
+
+data['travel_time'] = data['tpep_dropoff_datetime'] - data['tpep_pickup_datetime']
+data
+
+# Q. travel_time 컬럼의 데이터를 초 단위로 변환합니다.
+data['travel_time'] = data['travel_time'].dt.seconds
+
+data
+
+# 보너스 (feature engineering 맛보기)
+data.head()
+
+# Q. 승객이 지불한 총 요금을 total_amount 컬럼으로 저장합니다.
+
+data['total_amount'] = data['fare_amount'] + data['tip_amount'] + data['tolls_amount']
+
+data
+
+# Q. fare_amount와 trip_distance 사이의 관계를 scatter plot으로 표현합니다.
+
+sns.scatterplot(x = data['fare_amount'], y = data['trip_distance'])
+
+# Q. fare_amount와 travel_time 사이의 관계를 scatter plot으로 표현합니다.
+
+sns.scatterplot(x = data['fare_amount'], y = data['travel_time'])
+
+# Q. trip_distance와 travel_time 사이의 관계를 scatter plot으로 표현합니다.
+
+sns.scatterplot(x = data['trip_distance'], y = data['travel_time'])
+
+# Q. scatter plot으로 관찰된 travel_time의 이상치를 제거합니다.
+
+data = data[data['travel_time'] < 60000]
+data.describe()
+
